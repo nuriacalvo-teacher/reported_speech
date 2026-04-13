@@ -63,6 +63,7 @@
             display: inline-block; padding: 14px 28px; border: none; border-radius: 10px; cursor: pointer;
             font-weight: 700; transition: all 0.3s ease; text-align: center; font-size: 1rem;
         }
+        .btn-sm { padding: 8px 16px; font-size: 0.9rem; border-radius: 6px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-theory { background: var(--theory-color); color: white; }
         .btn-exercise { background: var(--exercise-color); color: white; }
@@ -96,6 +97,7 @@
         .progress-labels { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: bold; }
         .progress-bar-bg { background: #e2e8f0; height: 10px; border-radius: 5px; display: flex; overflow: hidden; }
         .progress-segment { height: 100%; border-right: 1px solid rgba(255,255,255,0.3); flex-grow: 1; }
+        .progress-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #e0f2fe; padding: 10px 15px; border-radius: 8px; }
 
         /* Exercise UI */
         .question-container { background: var(--bg-gray); padding: 30px; border-radius: 15px; border: 1px solid #e2e8f0; }
@@ -209,7 +211,7 @@ const theoryHTML = `
             Usamos <b>Suggest + Verbo en -ING</b>.<br>
             <i>"Let's go to the cinema." → He suggested <b>going</b> to the cinema.</i><br><br>
             
-            <b>B) Si la sugerencia es PARA OTRO (Why don't you / You should):</b><br>
+            <b>B) Si la sugerencia es PARA OTRO (Why don\'t you / You should):</b><br>
             Usamos <b>Suggest + that + Sujeto + (should) + Infinitivo</b>.<br>
             <i>"You should study more." → He suggested <b>that I (should) study</b> more.</i>
         </div>
@@ -469,19 +471,20 @@ class ReportedSpeechApp {
 
         return `<main>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:10px;">
-                <h1>Panel de Control</h1>
+                <h1>Panel de Progreso y Retos</h1>
                 <button class="btn btn-theory" onclick="app.setState({screen:'theory'})">📖 Estudiar Teoría</button>
             </div>
             <div class="dashboard">
                 ${blocks.map(b => {
                     const isStarted = this.state.answers[b.id] && this.state.answers[b.id].length > 0;
-                    const isCompleted = isStarted && this.state.answers[b.id].length === exercises[b.id].length;
-                    const score = isCompleted ? this.state.answers[b.id].filter(a => a.isCorrect).length : 0;
+                    const answered = isStarted ? this.state.answers[b.id].filter(a => a !== undefined).length : 0;
+                    const isCompleted = isStarted && answered === exercises[b.id].length;
+                    const score = isStarted ? this.state.answers[b.id].filter(a => a && a.isCorrect).length : 0;
                     return `
                         <div class="block-card ${isCompleted ? 'completed' : ''}">
                             <div><h3>${b.name}</h3><p style="color:#64748b; font-size:0.9rem;">${b.desc}</p></div>
                             <div style="margin-top:20px;">
-                                <div class="status">${isCompleted ? `Completado: ${score}/${exercises[b.id].length}` : (isStarted ? 'En curso...' : 'Pendiente')}</div>
+                                <div class="status">${isCompleted ? `Completado: ${score}/${exercises[b.id].length} puntos` : (isStarted ? `En curso... (${score} aciertos de ${answered})` : 'Pendiente')}</div>
                                 <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-exercise'}" style="width:100%" onclick="app.startBlock('${b.id}')">
                                     ${isCompleted ? 'Repetir Bloque' : (isStarted ? 'Continuar' : 'Comenzar')}
                                 </button>
@@ -508,8 +511,18 @@ class ReportedSpeechApp {
         const idx = this.state.currentIdx;
         const data = exercises[block][idx];
         const isFB = this.state.isFeedbackShown;
+        
+        const answered = this.state.answers[block] ? this.state.answers[block].filter(a => a !== undefined).length : 0;
+        const correct = this.state.answers[block] ? this.state.answers[block].filter(a => a && a.isCorrect).length : 0;
 
         return `<main>
+            <div class="progress-header-bar">
+                <div style="font-weight:bold; color:var(--primary);">
+                    🎯 Aciertos en esta sección: ${correct} / ${answered} respondidas
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="app.setState({screen:'menu'})">📊 Ver Progreso Global</button>
+            </div>
+
             <div class="progress-container">
                 <div class="progress-labels"><span>${block}</span><span>${idx+1} / ${exercises[block].length}</span></div>
                 <div class="progress-bar-bg">
@@ -559,7 +572,7 @@ class ReportedSpeechApp {
 
     renderBlockResult() {
         const block = this.state.currentBlock;
-        const correct = this.state.answers[block].filter(a => a.isCorrect).length;
+        const correct = this.state.answers[block].filter(a => a && a.isCorrect).length;
         const total = exercises[block].length;
         return `<main style="text-align:center">
             <h1>¡Bloque Terminado!</h1>
@@ -573,23 +586,34 @@ class ReportedSpeechApp {
         let totalCorrect = 0, totalQuestions = 0;
         Object.keys(exercises).forEach(b => {
             totalQuestions += exercises[b].length;
-            if (this.state.answers[b]) totalCorrect += this.state.answers[b].filter(a => a.isCorrect).length;
+            if (this.state.answers[b]) {
+                totalCorrect += this.state.answers[b].filter(a => a && a.isCorrect).length;
+            }
         });
 
         return `<main style="text-align:center">
             <h1>Resultados Finales</h1>
+            <h2 style="color:#475569; margin: 15px 0;">
+                Estudiante: ${this.state.user.name} ${this.state.user.surname}
+                <br><span style="font-size:1.1rem; font-weight:normal;">Curso: ${this.state.user.course}</span>
+            </h2>
+            
             <div style="font-size:5rem; font-weight:800; color:var(--primary); margin:20px 0;">${totalCorrect} <span style="font-size:2rem; color:#94a3b8">/ ${totalQuestions}</span></div>
-            <div class="dashboard">
-                ${Object.keys(exercises).map(b => `
+            
+            <div class="dashboard" style="margin-top: 30px;">
+                ${Object.keys(exercises).map(b => {
+                    const blockScore = this.state.answers[b] ? this.state.answers[b].filter(a => a && a.isCorrect).length : 0;
+                    return `
                     <div class="block-card">
                         <h3>${b === 'multipleChoice' ? 'A. Multiple Choice' : (b === 'fillInGaps' ? 'B. Fill in Gaps' : 'C. Rephrasing')}</h3>
-                        <p>${this.state.answers[b] ? this.state.answers[b].filter(a => a.isCorrect).length : 0} / ${exercises[b].length} puntos</p>
+                        <p style="font-size: 1.2rem; font-weight: bold; margin-top: 10px;">${blockScore} / ${exercises[b].length} puntos</p>
                     </div>
-                `).join('')}
+                `}).join('')}
             </div>
+            
             <div style="margin-top:40px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button class="btn btn-primary" onclick="app.exportData()">📤 Enviar a Google Sheets</button>
-                <button class="btn btn-secondary" onclick="app.setState({screen:'menu'})">Volver al Inicio</button>
+                <button class="btn btn-secondary" onclick="app.setState({screen:'menu'})">Volver al Panel</button>
             </div>
         </main>`;
     }
