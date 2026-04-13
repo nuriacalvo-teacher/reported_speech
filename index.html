@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reported Speech - Pro Mastery App</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --theory-color: #10b981;
+            --exercise-color: #f97316;
+            --success: #22c55e;
+            --error: #ef4444;
+            --bg-gray: #f8fafc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 90vh;
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-brand { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .user-tag { background: #e0f2fe; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+
+        main { padding: 30px; flex-grow: 1; position: relative; }
+
+        /* Auth/Login */
+        .auth-card { max-width: 450px; margin: 50px auto; padding: 40px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        input[type="text"], input[type="password"], select {
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border-color 0.2s;
+        }
+        input:focus { border-color: var(--secondary); outline: none; }
+
+        .btn {
+            display: inline-block; padding: 14px 28px; border: none; border-radius: 10px; cursor: pointer;
+            font-weight: 700; transition: all 0.3s ease; text-align: center; font-size: 1rem;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-theory { background: var(--theory-color); color: white; }
+        .btn-exercise { background: var(--exercise-color); color: white; }
+        .btn-secondary { background: #e2e8f0; color: var(--primary); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0.9; }
+
+        /* Dashboard de Bloques */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .block-card { 
+            padding: 25px; border: 2px solid #e2e8f0; border-radius: 15px; text-align: left; transition: 0.3s;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .block-card.completed { border-color: var(--success); background: #f0fdf4; }
+        .block-card h3 { color: var(--primary); margin-bottom: 10px; }
+        .block-card .status { font-size: 0.85rem; font-weight: bold; margin-bottom: 15px; }
+
+        /* Theory */
+        .theory-wrapper { max-height: 70vh; overflow-y: auto; padding-right: 15px; line-height: 1.6; }
+        .theory-section { margin-bottom: 40px; }
+        .theory-section h2 { color: var(--primary); border-bottom: 3px solid var(--theory-color); display: inline-block; margin-bottom: 15px; padding-bottom: 5px; }
+        .theory-card { background: #f1f5f9; padding: 15px; border-radius: 10px; border-left: 5px solid var(--theory-color); margin: 10px 0; }
+        .theory-card.alert { border-left-color: var(--error); background: #fef2f2; }
+        .example-box { background: #fff7ed; padding: 12px; border-radius: 8px; margin: 10px 0; font-family: monospace; font-size: 0.95rem; border: 1px solid #fed7aa; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        th { background: #f8fafc; color: var(--primary); font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+
+        /* Progress Bar */
+        .progress-container { margin-bottom: 25px; }
+        .progress-labels { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: bold; }
+        .progress-bar-bg { background: #e2e8f0; height: 10px; border-radius: 5px; display: flex; overflow: hidden; }
+        .progress-segment { height: 100%; border-right: 1px solid rgba(255,255,255,0.3); flex-grow: 1; }
+
+        /* Exercise UI */
+        .question-container { background: var(--bg-gray); padding: 30px; border-radius: 15px; border: 1px solid #e2e8f0; }
+        .q-text { font-size: 1.25rem; font-weight: 700; margin-bottom: 25px; line-height: 1.4; color: #334155; }
+        .options-list { display: grid; gap: 10px; }
+        .opt-btn {
+            background: white; border: 2px solid #e2e8f0; padding: 15px; text-align: left;
+            border-radius: 10px; cursor: pointer; font-size: 1rem; transition: 0.2s; width: 100%;
+        }
+        .opt-btn.correct { background: #dcfce7 !important; border-color: var(--success) !important; color: #166534; }
+        .opt-btn.wrong { background: #fee2e2 !important; border-color: var(--error) !important; color: #991b1b; }
+        
+        .feedback-box { margin-top: 20px; padding: 20px; border-radius: 10px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container"></div>
+
+<script>
+const PASS = 'nuriaLEGEND';
+const GOOGLE_SHEETS_URL = ''; 
+
+// --- TEORÍA MEJORADA ---
+const theoryHTML = `
+<div class="theory-wrapper">
+    <div class="theory-section">
+        <h2>1. Los Reporting Verbs</h2>
+        <p>El paso fundamental es introducir lo que otra persona ha dicho. Para ello usamos verbos introductores. Los más comunes son:</p>
+        <div class="theory-card">
+            • <b>SAY:</b> No lleva objeto directo obligatoriamente. <br><i>He said (that) he was tired.</i><br>
+            • <b>TELL:</b> <b>Exige</b> indicar a quién se le dice (me, you, him, us, them). <br><i>He told <b>me</b> (that) he was tired.</i> (NUNCA: He told that...)
+        </div>
+        <p>Otros verbos muy útiles que dan más contexto a la frase: <b>add</b> (añadir), <b>admit</b> (admitir), <b>complain</b> (quejarse), <b>explain</b> (explicar), <b>point out</b> (señalar), <b>reply</b> (responder).</p>
+    </div>
+
+    <div class="theory-section">
+        <h2>2. Cambios en Pronombres y Posesivos</h2>
+        <p>Al reportar, la perspectiva cambia. Si alguien dice "mi coche", tú al contarlo dirás "su coche". La regla es simple: los pronombres y posesivos de 1ª y 2ª persona cambian a la 3ª persona, dependiendo de quién hable.</p>
+        <div class="example-box">
+            <b>Directo:</b> Mary: "<b>I</b> have lost <b>my</b> keys and <b>you</b> need to help <b>me</b>."<br>
+            <b>Indirecto:</b> Mary said that <b>she</b> had lost <b>her</b> keys and <b>I</b> needed to help <b>her</b>.
+        </div>
+    </div>
+
+    <div class="theory-section">
+        <h2>3. Cambios en Expresiones de Tiempo y Lugar</h2>
+        <p>Como las frases no se reportan en el mismo momento ni lugar exacto en el que se dijeron, los demostrativos y adverbios cambian para reflejar esa "distancia".</p>
+        <table>
+            <tr><th>Estilo Directo</th><th>Estilo Indirecto (Reported)</th></tr>
+            <tr><td><b>Here</b> (aquí)</td><td><b>There</b> (allí)</td></tr>
+            <tr><td><b>This / These</b> (este / estos)</td><td><b>That / Those</b> (ese, aquel / esos, aquellos)</td></tr>
+            <tr><td><b>Now</b> (ahora)</td><td><b>Then / At that moment</b> (entonces / en ese momento)</td></tr>
+            <tr><td><b>Today / Tonight</b> (hoy / esta noche)</td><td><b>That day / That night</b> (ese día / esa noche)</td></tr>
+            <tr><td><b>Yesterday</b> (ayer)</td><td><b>The previous day / The day before</b> (el día anterior)</td></tr>
+            <tr><td><b>Tomorrow</b> (mañana)</td><td><b>The next day / The following day</b> (al día siguiente)</td></tr>
+            <tr><td><b>Last</b> week/month/year (la semana pasada)</td><td><b>The previous</b> week/month/year (la semana anterior)</td></tr>
+            <tr><td><b>Next</b> week/month/year (la próxima semana)</td><td><b>The following</b> week/month/year (la semana siguiente)</td></tr>
+        </table>
+    </div>
+
+    <div class="theory-section">
+        <h2>4. Tiempos Verbales (El "Backshift")</h2>
+        <p>Por lo general, damos un salto hacia atrás en el tiempo verbal.</p>
+        <table>
+            <tr><th>Directo</th><th>Indirecto (Reported)</th></tr>
+            <tr><td>Present Simple <i>(play)</i></td><td>Past Simple <i>(played)</i></td></tr>
+            <tr><td>Present Continuous <i>(am playing)</i></td><td>Past Continuous <i>(was playing)</i></td></tr>
+            <tr><td>Past Simple <i>(played)</i></td><td>Past Perfect <i>(had played)</i></td></tr>
+            <tr><td>Present Perfect <i>(have played)</i></td><td>Past Perfect <i>(had played)</i></td></tr>
+            <tr><td>Will / Can / May / Must</td><td>Would / Could / Might / Had to</td></tr>
+        </table>
+    </div>
+
+    <div class="theory-section">
+        <h2>5. Reported Questions: ¡No hay Inversión!</h2>
+        <div class="theory-card alert">
+            <b>REGLA DE ORO:</b> Al pasar una pregunta a Reported Speech, <b>deja de ser una pregunta</b>. Se convierte en una oración afirmativa subordinada. Por lo tanto:
+            <br><br>1. <b>El signo de interrogación (?) desaparece.</b> Si no hay interrogación al final, no puede haber estructura de pregunta.
+            <br>2. <b>NO se hace inversión.</b> El orden obligatorio es <b>Sujeto + Verbo</b>, no Verbo + Sujeto.
+            <br>3. <b>Desaparecen los auxiliares DO / DOES / DID.</b>
+        </div>
+        <div class="example-box">
+            <b>Wh- Questions (Mantienen la partícula interrogativa):</b><br>
+            Directo: "Where <b>is he</b>?"<br>
+            Indirecto: She asked me where <b>he was</b>. (MAL: <i>where was he</i>)<br><br>
+            <b>Yes/No Questions (Se introduce IF o WHETHER):</b><br>
+            Directo: "<b>Did you buy</b> the bread?"<br>
+            Indirecto: He asked <b>if I had bought</b> the bread. (El 'did' desaparece y pasa a Past Perfect).
+        </div>
+    </div>
+
+    <div class="theory-section">
+        <h2>6. Commands & Requests (Órdenes y Peticiones)</h2>
+        <p>No usamos "that" ni tiempos pasados. Usamos un infinitivo (con TO o NOT TO).</p>
+        <div class="theory-card">
+            <b>Estructura:</b> Verbo (told/asked/ordered) + Persona + <b>(not) TO + Infinitivo</b>.
+        </div>
+        <div class="example-box">
+            "Sit down, please." → The teacher asked me <b>to sit down</b>.<br>
+            "Don't touch that!" → My mom told me <b>not to touch</b> that.
+        </div>
+    </div>
+
+    <div class="theory-section">
+        <h2>7. Suggestions (Sugerencias)</h2>
+        <p>Suelen venir introducidas por "Let's...", "Why don't we/you...?" o "How about...?". El verbo introductor estrella es <b>SUGGEST</b>.</p>
+        <div class="theory-card">
+            <b>A) Si la sugerencia INCLUYE al que habla (Let's / Why don't we):</b><br>
+            Usamos <b>Suggest + Verbo en -ING</b>.<br>
+            <i>"Let's go to the cinema." → He suggested <b>going</b> to the cinema.</i><br><br>
+            
+            <b>B) Si la sugerencia es PARA OTRO (Why don't you / You should):</b><br>
+            Usamos <b>Suggest + that + Sujeto + (should) + Infinitivo</b>.<br>
+            <i>"You should study more." → He suggested <b>that I (should) study</b> more.</i>
+        </div>
+    </div>
+</div>
+`;
+
+// --- EJERCICIOS COMPLETOS (100) ---
+const exercises = {
+    // 40 MULTIPLE CHOICE
+    multipleChoice: [
+        { q: '"I will help you tomorrow," she said.', options: ['She said she will help me tomorrow', 'She said she would help me the next day', 'She said she helps me the day after'], correct: 1, cat: 'A.1 Statements' },
+        { q: '"I have finished my work," he said.', options: ['He said he finished his work', 'He said he had finished his work', 'He said he has finished his work'], correct: 1, cat: 'A.1 Statements' },
+        { q: '"I am meeting them now," Sam said.', options: ['Sam said he was meeting them then', 'Sam said he meets them now', 'Sam told he is meeting them then'], correct: 0, cat: 'A.1 Statements' },
+        { q: '"We went to Paris last year," they told us.', options: ['They told us they went to Paris last year', 'They told us they had gone to Paris the previous year', 'They told us they go to Paris the year before'], correct: 1, cat: 'A.1 Statements' },
+        { q: '"I don\'t like spinach," Mary said.', options: ['Mary said she didn\'t like spinach', 'Mary said she don\'t like spinach', 'Mary said she hasn\'t liked spinach'], correct: 0, cat: 'A.1 Statements' },
+        { q: '"You must study," the teacher told me.', options: ['The teacher told me I must have studied', 'The teacher told me I had to study', 'The teacher told me I must to study'], correct: 1, cat: 'A.1 Statements' },
+        { q: '"I can run fast," the boy said.', options: ['The boy said he can run fast', 'The boy said he could run fast', 'The boy said he could ran fast'], correct: 1, cat: 'A.1 Statements' },
+        { q: '"It is raining heavily," she noticed.', options: ['She noticed it was raining heavily', 'She noticed it is raining heavily', 'She noticed it had been rained heavily'], correct: 0, cat: 'A.1 Statements' },
+        { q: '"My brother will come here," he said.', options: ['He said his brother would go there', 'He said my brother will come there', 'He said his brother would come here'], correct: 0, cat: 'A.1 Statements' },
+        { q: '"I was reading a book," she said.', options: ['She said she had been reading a book', 'She said she was reading a book', 'She said she has read a book'], correct: 0, cat: 'A.1 Statements' },
+        
+        { q: '"Do you live here?" he asked me.', options: ['He asked me if I lived there', 'He asked if did I live here', 'He asked where I lived'], correct: 0, cat: 'A.2 Questions' },
+        { q: '"Where are my keys?" she wondered.', options: ['She wondered where her keys were', 'She wondered where were her keys', 'She wondered where are her keys'], correct: 0, cat: 'A.2 Questions' },
+        { q: '"Have you seen my dog?" the child asked.', options: ['The child asked if I saw his dog', 'The child asked had I seen his dog', 'The child asked if I had seen his dog'], correct: 2, cat: 'A.2 Questions' },
+        { q: '"What time is it?" the man asked.', options: ['The man asked what time it was', 'The man asked what time was it', 'The man asked what time is it'], correct: 0, cat: 'A.2 Questions' },
+        { q: '"Did you call me?" she asked him.', options: ['She asked him if he had called her', 'She asked him did he call her', 'She asked him if he called her'], correct: 0, cat: 'A.2 Questions' },
+        { q: '"Will it rain tomorrow?" he asked.', options: ['He asked if it will rain the next day', 'He asked if it would rain the next day', 'He asked would it rain tomorrow'], correct: 1, cat: 'A.2 Questions' },
+        { q: '"Why are you crying?" mother asked.', options: ['Mother asked why I was crying', 'Mother asked why was I crying', 'Mother asked why am I crying'], correct: 0, cat: 'A.2 Questions' },
+        { q: '"Who is your favorite singer?" he asked.', options: ['He asked who was my favorite singer', 'He asked who my favorite singer was', 'He asked who is my favorite singer'], correct: 1, cat: 'A.2 Questions' },
+        { q: '"Can you help me?" she asked him.', options: ['She asked him if he could help her', 'She asked him could he help her', 'She asked him to can help her'], correct: 0, cat: 'A.2 Questions' },
+        { q: '"How much did this cost?" he asked.', options: ['He asked how much this had cost', 'He asked how much that had cost', 'He asked how much did that cost'], correct: 1, cat: 'A.2 Questions' },
+
+        { q: '"Stop the car!" the officer shouted.', options: ['The officer told to stop the car', 'The officer ordered us to stop the car', 'The officer asked if we stop the car'], correct: 1, cat: 'A.3 Commands & Requests' },
+        { q: '"Don\'t touch the oven!" Mom warned me.', options: ['Mom warned me to not touch the oven', 'Mom warned me not to touch the oven', 'Mom told me don\'t touch the oven'], correct: 1, cat: 'A.3 Commands & Requests' },
+        { q: '"Can you open the window?" he asked.', options: ['He asked me to open the window', 'He asked if I can open the window', 'He said to open the window'], correct: 0, cat: 'A.3 Commands & Requests' },
+        { q: '"Please, sit down," the doctor said.', options: ['The doctor asked me to sit down', 'The doctor asked to sit down', 'The doctor told me sit down'], correct: 0, cat: 'A.3 Commands & Requests' },
+        { q: '"Don\'t be late," she told him.', options: ['She told him to not be late', 'She told him don\'t be late', 'She told him not to be late'], correct: 2, cat: 'A.3 Commands & Requests' },
+        { q: '"Give me the money!" the thief demanded.', options: ['The thief demanded me to give him the money', 'The thief demanded give him the money', 'The thief ordered me give money'], correct: 0, cat: 'A.3 Commands & Requests' },
+        { q: '"Read chapter one," the teacher said.', options: ['The teacher told us to read chapter one', 'The teacher said us to read chapter one', 'The teacher told to read chapter one'], correct: 0, cat: 'A.3 Commands & Requests' },
+        { q: '"Please, don\'t speak loudly," she asked.', options: ['She asked me to not speak loudly', 'She asked me not to speak loudly', 'She asked don\'t speak loudly'], correct: 1, cat: 'A.3 Commands & Requests' },
+        { q: '"Call an ambulance!" he shouted.', options: ['He shouted to call an ambulance', 'He shouted us to call an ambulance', 'He told to call an ambulance'], correct: 1, cat: 'A.3 Commands & Requests' },
+        { q: '"Could you close the door?" he asked her.', options: ['He asked her if she could close the door', 'He asked her to close the door', 'Both A and B are correct depending on context (Request)'], correct: 1, cat: 'A.3 Commands & Requests' },
+
+        { q: '"Why don\'t we go to the cinema?" Mark said.', options: ['Mark suggested going to the cinema', 'Mark suggested to go to the cinema', 'Mark said to go to the cinema'], correct: 0, cat: 'A.4 Suggestions' },
+        { q: '"You should study harder," the teacher said to her.', options: ['The teacher suggested that she study harder', 'The teacher told to study harder', 'The teacher said her to study harder'], correct: 0, cat: 'A.4 Suggestions' },
+        { q: '"Let\'s have pizza," he suggested.', options: ['He suggested to have pizza', 'He suggested having pizza', 'He suggested we having pizza'], correct: 1, cat: 'A.4 Suggestions' },
+        { q: '"How about visiting the museum?" she asked.', options: ['She suggested visiting the museum', 'She suggested to visit the museum', 'She asked to visit the museum'], correct: 0, cat: 'A.4 Suggestions' },
+        { q: '"Why don\'t you rest?" the nurse said to me.', options: ['The nurse suggested that I rest', 'The nurse suggested me to rest', 'The nurse suggested resting'], correct: 0, cat: 'A.4 Suggestions' },
+        { q: '"Let\'s not argue," he said.', options: ['He suggested not arguing', 'He suggested to not argue', 'He said let\'s not argue'], correct: 0, cat: 'A.4 Suggestions' },
+        { q: '"Shall we take a taxi?" she said.', options: ['She suggested taking a taxi', 'She said to take a taxi', 'She suggested to take a taxi'], correct: 0, cat: 'A.4 Suggestions' },
+        { q: '"I think you should buy that car," he told me.', options: ['He suggested that I buy that car', 'He suggested me buying that car', 'He suggested to buy that car'], correct: 0, cat: 'A.4 Suggestions' },
+        { q: '"Let\'s swim in the pool," they said.', options: ['They suggested to swim in the pool', 'They suggested swimming in the pool', 'They said swimming in the pool'], correct: 1, cat: 'A.4 Suggestions' },
+        { q: '"Why don\'t we order sushi?" she said.', options: ['She suggested that we order sushi', 'She suggested to order sushi', 'She asked to order sushi'], correct: 0, cat: 'A.4 Suggestions' }
+    ],
+
+    // 40 FILL IN THE GAPS
+    fillInGaps: [
+        { q: 'Direct: "I love this place." <br> Reported: He said he _________ _________ place.', correct: ['loved that'], cat: 'B.1 Statements' },
+        { q: 'Direct: "I am busy today." <br> Reported: She said she _________ busy _________ day.', correct: ['was that'], cat: 'B.1 Statements' },
+        { q: 'Direct: "We are leaving tomorrow." <br> Reported: They said they were leaving the _________ day.', correct: ['next', 'following'], cat: 'B.1 Statements' },
+        { q: 'Direct: "I didn\'t see the movie." <br> Reported: He said he _________ _________ the movie.', correct: ['hadnt seen', 'had not seen'], cat: 'B.1 Statements' },
+        { q: 'Direct: "I have finished my tea." <br> Reported: She told me she _________ finished her tea.', correct: ['had'], cat: 'B.1 Statements' },
+        { q: 'Direct: "The dog is sleeping." <br> Reported: He noted that the dog _________ sleeping.', correct: ['was'], cat: 'B.1 Statements' },
+        { q: 'Direct: "I can drive a tractor." <br> Reported: He said he _________ drive a tractor.', correct: ['could'], cat: 'B.1 Statements' },
+        { q: 'Direct: "I will call you." <br> Reported: She said she _________ call me.', correct: ['would'], cat: 'B.1 Statements' },
+        { q: 'Direct: "They went home." <br> Reported: He said they _________ _________ home.', correct: ['had gone'], cat: 'B.1 Statements' },
+        { q: 'Direct: "I must leave." <br> Reported: She said she _________ _________ leave.', correct: ['had to'], cat: 'B.1 Statements' },
+
+        { q: 'Direct: "Where do you go?" <br> Reported: She asked me where I _________.', correct: ['went'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Will it rain?" <br> Reported: He asked _________ it _________ rain.', correct: ['if would', 'whether would'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Have you eaten?" <br> Reported: She asked if I _________ _________.', correct: ['had eaten'], cat: 'B.2 Questions' },
+        { q: 'Direct: "What is your name?" <br> Reported: He asked what my name _________.', correct: ['was'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Are you sad?" <br> Reported: They asked me if I _________ sad.', correct: ['was'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Why did she cry?" <br> Reported: He asked why she _________ _________.', correct: ['had cried'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Can you swim?" <br> Reported: She asked if I _________ swim.', correct: ['could'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Who do you like?" <br> Reported: He asked who I _________.', correct: ['liked'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Is it cold outside?" <br> Reported: She asked if it _________ cold outside.', correct: ['was'], cat: 'B.2 Questions' },
+        { q: 'Direct: "Where will you live?" <br> Reported: He asked where I _________ live.', correct: ['would'], cat: 'B.2 Questions' },
+
+        { q: 'Direct: "Don\'t shout!" <br> Reported: He told us _________ _________ shout.', correct: ['not to'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Go away!" <br> Reported: He ordered me _________ _________ away.', correct: ['to go'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Please, help me." <br> Reported: She asked me _________ _________ her.', correct: ['to help'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Stand up!" <br> Reported: The teacher told them _________ _________ up.', correct: ['to stand'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Don\'t run in the hall." <br> Reported: He warned us _________ _________ run in the hall.', correct: ['not to'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Pass the salt, please." <br> Reported: He asked me _________ _________ the salt.', correct: ['to pass'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Close your books." <br> Reported: She told us _________ _________ our books.', correct: ['to close'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Don\'t open the door." <br> Reported: He ordered me _________ _________ open the door.', correct: ['not to'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Be careful." <br> Reported: Mother told me _________ _________ careful.', correct: ['to be'], cat: 'B.3 Commands' },
+        { q: 'Direct: "Wait for me." <br> Reported: She asked me _________ _________ for her.', correct: ['to wait'], cat: 'B.3 Commands' },
+
+        { q: 'Direct: "Let\'s dance." <br> Reported: She suggested _________.', correct: ['dancing'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "Why don\'t you try again, Sarah?" <br> Reported: He suggested that Sarah _________ again.', correct: ['try', 'should try'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "Shall we eat out?" <br> Reported: He suggested _________ out.', correct: ['eating'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "How about walking?" <br> Reported: She suggested _________.', correct: ['walking'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "You should see a doctor." <br> Reported: He suggested that I _________ a doctor.', correct: ['see', 'should see'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "Let\'s not rush." <br> Reported: She suggested _________ _________.', correct: ['not rushing'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "Why don\'t we take a break?" <br> Reported: He suggested _________ a break.', correct: ['taking'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "Let\'s watch TV." <br> Reported: They suggested _________ TV.', correct: ['watching'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "You should sleep more." <br> Reported: She suggested that I _________ more.', correct: ['sleep', 'should sleep'], cat: 'B.4 Suggestions' },
+        { q: 'Direct: "How about playing cards?" <br> Reported: He suggested _________ cards.', correct: ['playing'], cat: 'B.4 Suggestions' }
+    ],
+
+    // 20 REPHRASING
+    rephrasing: [
+        { q: 'Rewrite: "I can\'t come tonight," Paul said.', correct: ['Paul said he couldn\'t come that night', 'Paul said that he couldn\'t come that night'] },
+        { q: 'Rewrite: "Where is the post office?" he asked.', correct: ['He asked where the post office was'] },
+        { q: 'Rewrite: "Please, be quiet," she told them.', correct: ['She told them to be quiet', 'She asked them to be quiet'] },
+        { q: 'Rewrite: "Let\'s have a party!" said Jane.', correct: ['Jane suggested having a party', 'Jane suggested that they have a party'] },
+        { q: 'Rewrite: "Have you seen my dog?" she asked.', correct: ['She asked if I had seen her dog', 'She asked whether I had seen her dog'] },
+        { q: 'Rewrite: "I will travel to Rome next week," Mary said.', correct: ['Mary said she would travel to Rome the following week', 'Mary said that she would travel to Rome the next week'] },
+        { q: 'Rewrite: "Don\'t forget your umbrella," Mom told me.', correct: ['Mom told me not to forget my umbrella', 'Mom warned me not to forget my umbrella'] },
+        { q: 'Rewrite: "What time does the train leave?" he asked.', correct: ['He asked what time the train left'] },
+        { q: 'Rewrite: "Why don\'t we order a pizza?" Sam suggested.', correct: ['Sam suggested ordering a pizza', 'Sam suggested that we order a pizza'] },
+        { q: 'Rewrite: "I didn\'t buy the milk yesterday," he explained.', correct: ['He explained he hadn\'t bought the milk the day before', 'He explained that he had not bought the milk the previous day', 'He explained he had not bought the milk the day before'] },
+        { q: 'Rewrite: "Stand up immediately!" the officer ordered.', correct: ['The officer ordered to stand up immediately', 'The officer ordered us to stand up immediately', 'The officer ordered them to stand up immediately'] },
+        { q: 'Rewrite: "Did you enjoy the concert?" they asked me.', correct: ['They asked me if I had enjoyed the concert', 'They asked me whether I had enjoyed the concert'] },
+        { q: 'Rewrite: "I am writing a letter now," she said.', correct: ['She said she was writing a letter then', 'She said that she was writing a letter at that moment'] },
+        { q: 'Rewrite: "Could you pass the salt?" he asked her.', correct: ['He asked her to pass the salt'] },
+        { q: 'Rewrite: "You should see a dentist," she told me.', correct: ['She suggested that I see a dentist', 'She suggested I should see a dentist', 'She told me to see a dentist'] },
+        { q: 'Rewrite: "Let\'s not go out today," he said.', correct: ['He suggested not going out that day'] },
+        { q: 'Rewrite: "I have already finished my homework," the boy said.', correct: ['The boy said he had already finished his homework', 'The boy said that he had already finished his homework'] },
+        { q: 'Rewrite: "Why are you laughing?" the teacher asked.', correct: ['The teacher asked why I was laughing', 'The teacher asked why we were laughing'] },
+        { q: 'Rewrite: "Don\'t run in the corridors," the headmaster said.', correct: ['The headmaster told us not to run in the corridors', 'The headmaster warned us not to run in the corridors'] },
+        { q: 'Rewrite: "I can speak French," she said.', correct: ['She said she could speak French', 'She said that she could speak French'] }
+    ]
+};
+
+// --- APP ENGINE ---
+class ReportedSpeechApp {
+    constructor() {
+        this.state = {
+            screen: 'auth',
+            user: null,
+            currentBlock: null,
+            currentIdx: 0,
+            answers: {}, 
+            isFeedbackShown: false,
+            currentResult: null
+        };
+        this.init();
+    }
+
+    init() { this.render(); }
+
+    setState(updates) {
+        this.state = { ...this.state, ...updates };
+        this.render();
+    }
+
+    handleLogin() {
+        const p = document.getElementById('auth-pass').value;
+        const n = document.getElementById('auth-name').value;
+        const s = document.getElementById('auth-surname').value;
+        const c = document.getElementById('auth-course').value;
+        if (p !== PASS) return alert('Clave incorrecta');
+        if (!n || !s) return alert('Completa tus datos');
+        this.setState({ user: { name: n, surname: s, course: c }, screen: 'menu' });
+    }
+
+    startBlock(blockKey) {
+        this.setState({ currentBlock: blockKey, currentIdx: 0, screen: 'exercise', isFeedbackShown: false });
+    }
+
+    checkAnswer(val) {
+        if (this.state.isFeedbackShown) return;
+        if (val === undefined || val === '') return alert('Por favor, introduce una respuesta.');
+        
+        const block = this.state.currentBlock;
+        const data = exercises[block][this.state.currentIdx];
+        let isCorrect = false;
+
+        if (block === 'multipleChoice') {
+            isCorrect = parseInt(val) === data.correct;
+        } else {
+            const clean = s => s.toString().toLowerCase().trim().replace(/[.,!?;:"]/g, '').replace(/\s+/g, ' ');
+            const userClean = clean(val);
+            isCorrect = data.correct.some(c => clean(c) === userClean);
+        }
+
+        const answerObj = { idx: this.state.currentIdx, isCorrect, userVal: val };
+        
+        if (!this.state.answers[block]) this.state.answers[block] = [];
+        this.state.answers[block][this.state.currentIdx] = answerObj;
+
+        this.setState({ 
+            isFeedbackShown: true, 
+            currentResult: { isCorrect, correctText: block === 'multipleChoice' ? data.options[data.correct] : data.correct.join(' / ') } 
+        });
+    }
+
+    nextQuestion() {
+        const block = this.state.currentBlock;
+        if (this.state.currentIdx + 1 < exercises[block].length) {
+            this.setState({ currentIdx: this.state.currentIdx + 1, isFeedbackShown: false });
+        } else {
+            this.setState({ screen: 'blockResult' });
+        }
+    }
+
+    async exportData() {
+        if (!GOOGLE_SHEETS_URL) return alert('No se ha configurado el enlace de Google Sheets.');
+        
+        let mc = 0, fg = 0, rp = 0;
+        if (this.state.answers.multipleChoice) mc = this.state.answers.multipleChoice.filter(a => a.isCorrect).length;
+        if (this.state.answers.fillInGaps) fg = this.state.answers.fillInGaps.filter(a => a.isCorrect).length;
+        if (this.state.answers.rephrasing) rp = this.state.answers.rephrasing.filter(a => a.isCorrect).length;
+
+        const payload = {
+            timestamp: new Date().toLocaleString(), name: this.state.user.name, surname: this.state.user.surname,
+            course: this.state.user.course, multipleChoice: mc, fillInGaps: fg, rephrasing: rp, total: mc + fg + rp
+        };
+
+        try {
+            await fetch(GOOGLE_SHEETS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            alert('¡Resultados enviados a la profesora con éxito!');
+        } catch (e) { alert('Error en la conexión con el servidor.'); }
+    }
+
+    render() {
+        const app = document.getElementById('app');
+        app.innerHTML = '';
+        if (this.state.screen === 'auth') app.innerHTML = this.renderAuth();
+        else if (this.state.screen === 'menu') app.innerHTML = this.renderHeader() + this.renderMenu();
+        else if (this.state.screen === 'theory') app.innerHTML = this.renderHeader() + this.renderTheory();
+        else if (this.state.screen === 'exercise') app.innerHTML = this.renderHeader() + this.renderExercise();
+        else if (this.state.screen === 'blockResult') app.innerHTML = this.renderHeader() + this.renderBlockResult();
+        else if (this.state.screen === 'finalResults') app.innerHTML = this.renderHeader() + this.renderFinalResults();
+    }
+
+    renderHeader() {
+        return `<header>
+            <div class="header-brand">REPORTED SPEECH PRO</div>
+            <div class="user-tag">${this.state.user.name} - ${this.state.user.course}</div>
+        </header>`;
+    }
+
+    renderAuth() {
+        return `<main><div class="auth-card">
+            <h2 style="text-align:center; margin-bottom:20px;">Acceso Estudiante</h2>
+            <div class="input-group"><label>Clave</label><input type="password" id="auth-pass" value="nuriaLEGEND"></div>
+            <div class="input-group"><label>Nombre</label><input type="text" id="auth-name"></div>
+            <div class="input-group"><label>Apellido</label><input type="text" id="auth-surname"></div>
+            <div class="input-group"><label>Curso</label><select id="auth-course">
+                <option>4º ESO A</option><option>4º ESO B</option><option>1º Bach A</option><option>1º Bach B</option>
+            </select></div>
+            <button class="btn btn-primary" style="width:100%" onclick="app.handleLogin()">Entrar</button>
+        </div></main>`;
+    }
+
+    renderMenu() {
+        const blocks = [
+            { id: 'multipleChoice', name: 'Bloque A: Multiple Choice', desc: '40 ejercicios de selección múltiple.' },
+            { id: 'fillInGaps', name: 'Bloque B: Fill in Gaps', desc: '40 ejercicios de completar huecos.' },
+            { id: 'rephrasing', name: 'Bloque C: Rephrasing', desc: '20 ejercicios de transformación total.' }
+        ];
+
+        return `<main>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:10px;">
+                <h1>Panel de Control</h1>
+                <button class="btn btn-theory" onclick="app.setState({screen:'theory'})">📖 Estudiar Teoría</button>
+            </div>
+            <div class="dashboard">
+                ${blocks.map(b => {
+                    const isStarted = this.state.answers[b.id] && this.state.answers[b.id].length > 0;
+                    const isCompleted = isStarted && this.state.answers[b.id].length === exercises[b.id].length;
+                    const score = isCompleted ? this.state.answers[b.id].filter(a => a.isCorrect).length : 0;
+                    return `
+                        <div class="block-card ${isCompleted ? 'completed' : ''}">
+                            <div><h3>${b.name}</h3><p style="color:#64748b; font-size:0.9rem;">${b.desc}</p></div>
+                            <div style="margin-top:20px;">
+                                <div class="status">${isCompleted ? `Completado: ${score}/${exercises[b.id].length}` : (isStarted ? 'En curso...' : 'Pendiente')}</div>
+                                <button class="btn ${isCompleted ? 'btn-secondary' : 'btn-exercise'}" style="width:100%" onclick="app.startBlock('${b.id}')">
+                                    ${isCompleted ? 'Repetir Bloque' : (isStarted ? 'Continuar' : 'Comenzar')}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <div style="margin-top:40px; text-align:center;">
+                <button class="btn btn-primary" onclick="app.setState({screen:'finalResults'})">🏆 Ver Puntuación Final</button>
+            </div>
+        </main>`;
+    }
+
+    renderTheory() {
+        return `<main>
+            <button class="btn btn-secondary" style="margin-bottom:20px" onclick="app.setState({screen:'menu'})">← Volver al Panel</button>
+            ${theoryHTML}
+        </main>`;
+    }
+
+    renderExercise() {
+        const block = this.state.currentBlock;
+        const idx = this.state.currentIdx;
+        const data = exercises[block][idx];
+        const isFB = this.state.isFeedbackShown;
+
+        return `<main>
+            <div class="progress-container">
+                <div class="progress-labels"><span>${block}</span><span>${idx+1} / ${exercises[block].length}</span></div>
+                <div class="progress-bar-bg">
+                    ${exercises[block].map((_, i) => {
+                        const ans = this.state.answers[block] && this.state.answers[block][i];
+                        let c = '#e2e8f0';
+                        if (ans) c = ans.isCorrect ? 'var(--success)' : 'var(--error)';
+                        else if (i === idx) c = 'var(--secondary)';
+                        return `<div class="progress-segment" style="background:${c}"></div>`;
+                    }).join('')}
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div style="color:var(--exercise-color); font-weight:bold; font-size:0.8rem; margin-bottom:5px;">${data.cat || 'Rephrasing'}</div>
+                <div class="q-text">${data.q}</div>
+                
+                ${block === 'multipleChoice' ? `
+                    <div class="options-list">
+                        ${data.options.map((opt, i) => {
+                            let cls = '';
+                            if (isFB) {
+                                if (i === data.correct) cls = 'correct';
+                                else if (parseInt(this.state.answers[block][idx].userVal) === i) cls = 'wrong';
+                            }
+                            return `<button class="opt-btn ${cls}" onclick="app.checkAnswer(${i})" ${isFB ? 'disabled' : ''}>${opt}</button>`;
+                        }).join('')}
+                    </div>
+                ` : `
+                    <div class="input-group">
+                        <input type="text" id="gapInput" placeholder="Escribe aquí..." autocomplete="off" ${isFB ? 'disabled' : ''} onkeypress="if(event.key==='Enter') app.checkAnswer(this.value)">
+                    </div>
+                    ${!isFB ? `<button class="btn btn-primary" style="width:100%" onclick="app.checkAnswer(document.getElementById('gapInput').value)">Comprobar</button>` : ''}
+                `}
+
+                ${isFB ? `
+                    <div class="feedback-box" style="background:${this.state.currentResult.isCorrect ? '#dcfce7' : '#fee2e2'}; border: 1px solid ${this.state.currentResult.isCorrect ? 'var(--success)' : 'var(--error)'}">
+                        <p style="font-weight:bold; color:${this.state.currentResult.isCorrect ? '#166534' : '#991b1b'}">
+                            ${this.state.currentResult.isCorrect ? '¡Correcto!' : 'Incorrecto. La respuesta era: ' + this.state.currentResult.correctText}
+                        </p>
+                        <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="app.nextQuestion()">Continuar →</button>
+                    </div>
+                ` : ''}
+            </div>
+        </main>`;
+    }
+
+    renderBlockResult() {
+        const block = this.state.currentBlock;
+        const correct = this.state.answers[block].filter(a => a.isCorrect).length;
+        const total = exercises[block].length;
+        return `<main style="text-align:center">
+            <h1>¡Bloque Terminado!</h1>
+            <div style="font-size:4rem; margin:20px 0; color:var(--primary)">${correct} / ${total}</div>
+            <p style="margin-bottom:30px">Has completado esta sección satisfactoriamente.</p>
+            <button class="btn btn-primary" onclick="app.setState({screen:'menu'})">Volver al Panel Principal</button>
+        </main>`;
+    }
+
+    renderFinalResults() {
+        let totalCorrect = 0, totalQuestions = 0;
+        Object.keys(exercises).forEach(b => {
+            totalQuestions += exercises[b].length;
+            if (this.state.answers[b]) totalCorrect += this.state.answers[b].filter(a => a.isCorrect).length;
+        });
+
+        return `<main style="text-align:center">
+            <h1>Resultados Finales</h1>
+            <div style="font-size:5rem; font-weight:800; color:var(--primary); margin:20px 0;">${totalCorrect} <span style="font-size:2rem; color:#94a3b8">/ ${totalQuestions}</span></div>
+            <div class="dashboard">
+                ${Object.keys(exercises).map(b => `
+                    <div class="block-card">
+                        <h3>${b === 'multipleChoice' ? 'A. Multiple Choice' : (b === 'fillInGaps' ? 'B. Fill in Gaps' : 'C. Rephrasing')}</h3>
+                        <p>${this.state.answers[b] ? this.state.answers[b].filter(a => a.isCorrect).length : 0} / ${exercises[b].length} puntos</p>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="margin-top:40px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="app.exportData()">📤 Enviar a Google Sheets</button>
+                <button class="btn btn-secondary" onclick="app.setState({screen:'menu'})">Volver al Inicio</button>
+            </div>
+        </main>`;
+    }
+}
+
+const app = new ReportedSpeechApp();
+</script>
+</body>
+</html>
