@@ -426,7 +426,11 @@ class ReportedSpeechApp {
         };
 
         try {
-            await fetch(GOOGLE_SHEETS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            await fetch(GOOGLE_SHEETS_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+});
             alert('¡Resultados enviados a la profesora con éxito!');
         } catch (e) { alert('Error en la conexión con el servidor.'); }
     }
